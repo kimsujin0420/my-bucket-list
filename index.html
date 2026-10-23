@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f3ee">
+<title>나의 버킷리스트</title>
+<style>
+:root{--bg:#f6f3ee;--card:#fffdfa;--ink:#292822;--muted:#77756d;--line:#e8e2d8;--accent:#586b54;--soft:#edf0e8;--gold:#d8b66a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.5}
+main{max-width:760px;margin:auto;padding:24px 16px calc(40px + env(safe-area-inset-bottom))}
+header{padding:18px 4px 22px}.eyebrow{font-size:12px;letter-spacing:.13em;color:var(--accent);font-weight:800}.heading{font-size:30px;line-height:1.2;margin:8px 0;font-weight:850;letter-spacing:-.04em}.subtitle{color:var(--muted);font-size:14px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px #51472c08}
+.stats{display:flex;align-items:center;gap:12px}.stat{flex:1}.num{font-size:27px;font-weight:850;letter-spacing:-.04em}.label{font-size:12px;color:var(--muted)}.progress{height:8px;background:#eae6de;border-radius:99px;overflow:hidden;margin-top:14px}.bar{height:100%;background:var(--accent);width:0;transition:width .2s}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}input,select,button{font:inherit}input[type=search],input[type=text],select{min-width:0;width:100%;border:1px solid var(--line);background:#fffefa;padding:12px 13px;border-radius:12px;color:var(--ink);font-size:14px}button{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fffefa;color:var(--ink);font-weight:650;font-size:14px;cursor:pointer}button.primary{background:var(--accent);color:white;border-color:var(--accent)}button.small{padding:7px 10px;font-size:12px}button:active{transform:scale(.99)}
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.chip{border-radius:99px;padding:8px 13px}.chip.active{background:var(--ink);color:white;border-color:var(--ink)}
+.category{background:var(--card);border:1px solid var(--line);border-radius:17px;margin:10px 0;overflow:hidden}.cathead{display:flex;align-items:center;gap:10px;padding:15px;width:100%;text-align:left;border:0;border-radius:0;background:transparent}.arrow{width:22px;height:22px;display:grid;place-items:center;background:var(--soft);border-radius:7px;color:var(--accent);flex-shrink:0}.catname{font-weight:800;flex:1}.count{font-size:12px;color:var(--muted);white-space:nowrap}.catitems{padding:0 13px 9px}.item{display:flex;gap:11px;align-items:flex-start;padding:12px 2px;border-top:1px solid #f0ece5}.item input{accent-color:var(--accent);width:19px;height:19px;flex-shrink:0;margin:2px 0 0}.item-title{flex:1;font-size:14px;overflow-wrap:anywhere}.item.done .item-title{text-decoration:line-through;color:#96938a}.delete{border:0;background:transparent;color:#aaa69b;padding:2px 5px;font-size:18px;line-height:1}.empty{text-align:center;padding:30px 12px;color:var(--muted);font-size:14px}.addform{display:none;margin-top:12px;padding-top:14px;border-top:1px solid var(--line);gap:8px}.addform.show{display:grid}.savehint{font-size:12px;color:var(--muted);text-align:center;padding:10px}.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.footnote{font-size:12px;color:var(--muted);line-height:1.6;margin:20px 4px}
+@media(min-width:600px){main{padding-top:36px}.heading{font-size:36px}.controls{grid-template-columns:1fr 1fr 1fr}.item-title{font-size:15px}}
+</style>
+</head>
+<body><main>
+<header><div class="eyebrow">A LITTLE LIST OF BIG THINGS</div><h1 class="heading">나의 버킷리스트</h1><div class="subtitle">하고 싶은 일을 하나씩, 내 속도로.</div></header>
+<section class="panel">
+ <div class="stats"><div class="stat"><div class="num" id="progressText">0 / 78</div><div class="label">완료한 버킷리스트</div></div><div class="stat"><div class="num" id="percentText">0%</div><div class="label">전체 달성률</div></div></div>
+ <div class="progress"><div class="bar" id="progressBar"></div></div>
+ <div class="controls">
+  <input id="search" type="search" placeholder="항목 검색하기" aria-label="항목 검색">
+  <select id="categoryFilter" aria-label="카테고리 필터"><option value="">모든 카테고리</option></select>
+  <button id="addToggle" class="primary">＋ 새 항목 추가</button>
+ </div>
+ <div class="addform" id="addForm">
+  <input id="newTitle" type="text" placeholder="하고 싶은 일">
+  <input id="newCategory" type="text" list="categoryOptions" placeholder="카테고리 (예: 여행, 그림)">
+  <datalist id="categoryOptions"></datalist>
+  <button class="primary" id="addButton">목록에 추가</button>
+ </div>
+ <div class="tools">
+  <button class="small" id="expandAll">모두 펼치기</button><button class="small" id="collapseAll">모두 접기</button>
+  <button class="small" id="exportBtn">백업 파일 저장</button><button class="small" id="importBtn">백업 불러오기</button><input type="file" id="importFile" accept="application/json,.json" hidden>
+ </div>
+</section>
+<div class="filters" id="tabs"><button class="chip active" data-tab="all">전체</button><button class="chip" data-tab="todo">미완료</button><button class="chip" data-tab="done">완료</button></div>
+<div id="list"></div>
+<div class="savehint" id="saveHint">● 이 브라우저에 자동 저장됨</div>
+<div class="footnote">기록은 이 웹페이지를 사용하는 브라우저의 저장 공간에 자동 보관돼요. 브라우저 데이터 삭제 또는 다른 기기·브라우저 사용 시 기록이 공유되지 않을 수 있어요. 가끔 ‘백업 파일 저장’을 눌러 백업해 주세요.</div>
+</main>
+<script>
+const INITIAL_ITEMS = [{"id": 1, "category": "여행·외출·경험", "title": "출생신고서 원본 열람해 보기", "done": false}, {"id": 2, "category": "여행·외출·경험", "title": "대전 빵버스 경험해 보기", "done": false}, {"id": 3, "category": "여행·외출·경험", "title": "경주 당일치기 여행 가기", "done": false}, {"id": 4, "category": "여행·외출·경험", "title": "대구 명덕네거리 파이집 프라리네 가보기", "done": false}, {"id": 5, "category": "여행·외출·경험", "title": "나들이 가서 풍경 그려보기", "done": false}, {"id": 6, "category": "여행·외출·경험", "title": "드로잉 여행 떠나보기", "done": false}, {"id": 7, "category": "여행·외출·경험", "title": "컬러워크 해보기", "done": false}, {"id": 8, "category": "여행·외출·경험", "title": "기숙사에서 요리 만들어 먹기", "done": false}, {"id": 9, "category": "구매", "title": "미언더 드로즈 구매해 보기", "done": false}, {"id": 10, "category": "그림·드로잉·미술", "title": "한 달 동안 그림 꾸준히 그리기", "done": false}, {"id": 11, "category": "그림·드로잉·미술", "title": "북마크의 그림 주제를 모두 시도해 보기", "done": false}, {"id": 12, "category": "그림·드로잉·미술", "title": "북마크 색감 추천을 참고해 그림 또는 디자인 해보기", "done": false}, {"id": 13, "category": "그림·드로잉·미술", "title": "동양식·서양식 디자인을 참고해 그림 그려보기", "done": false}, {"id": 14, "category": "그림·드로잉·미술", "title": "모작 한 달 해보기", "done": false}, {"id": 15, "category": "그림·드로잉·미술", "title": "핀터레스트가 시키는 거 그려보기", "done": false}, {"id": 16, "category": "그림·드로잉·미술", "title": "내가 그린 그림을 모아서 책으로 인쇄해 보기", "done": false}, {"id": 17, "category": "그림·드로잉·미술", "title": "그림으로 돈 벌어 보기", "done": false}, {"id": 18, "category": "글쓰기·스토리 창작", "title": "주제를 가지고 시를 지어 보기", "done": false}, {"id": 19, "category": "글쓰기·스토리 창작", "title": "일주일 동안 GPT에게 단어를 받아 매일 글쓰기", "done": false}, {"id": 20, "category": "글쓰기·스토리 창작", "title": "북마크의 작품을 참고해 작품 하나 만들기 또는 스토리 짜 보기", "done": false}, {"id": 21, "category": "글쓰기·스토리 창작", "title": "스토리보드를 위한 노트 제작해 보기", "done": false}, {"id": 22, "category": "글쓰기·스토리 창작", "title": "누가 봐도 그만하라고 할 때까지 몰입해 보기", "done": false}, {"id": 23, "category": "영상·애니메이션·연출", "title": "셜록의 화면 전환 연출을 참고해 공부하기", "done": false}, {"id": 24, "category": "영상·애니메이션·연출", "title": "연출·구도 연습을 스토리 구상과 연결하기", "done": false}, {"id": 25, "category": "영상·애니메이션·연출", "title": "연출 법칙·구도 공부하기", "done": false}, {"id": 26, "category": "영상·애니메이션·연출", "title": "영상 편집 공부하거나 배워 보기", "done": false}, {"id": 27, "category": "영상·애니메이션·연출", "title": "화면 분할로 애니메이션 또는 뮤직비디오 만들어 보기", "done": false}, {"id": 28, "category": "영상·애니메이션·연출", "title": "애니메이션 채널 구경하기", "done": false}, {"id": 29, "category": "3D·게임·코딩", "title": "블렌더 온라인 강의 끝까지 듣기", "done": false}, {"id": 30, "category": "3D·게임·코딩", "title": "프로크리에이트에 3D 모델링을 불러와 작업해 보기", "done": false}, {"id": 31, "category": "3D·게임·코딩", "title": "게임 제작해 보기", "done": false}, {"id": 32, "category": "3D·게임·코딩", "title": "코딩 배우기 또는 직접 코딩해 보기", "done": false}, {"id": 33, "category": "3D·게임·코딩", "title": "언리얼(Unreal) 배워서 게임 만들어 보기", "done": false}, {"id": 34, "category": "SNS·계정 운영", "title": "인스타툰 챌린지에 참여하거나 인스타툰 시작해 보기", "done": false}, {"id": 35, "category": "SNS·계정 운영", "title": "자기 채널이나 계정 운영해 보기", "done": false}, {"id": 36, "category": "공예·다꾸·만들기", "title": "이모티콘 만들어 보기", "done": false}, {"id": 37, "category": "공예·다꾸·만들기", "title": "핀터레스트가 정해 준 대로 다꾸해 보기", "done": false}, {"id": 38, "category": "공예·다꾸·만들기", "title": "다이소 노트를 풀로 다꾸해 보기", "done": false}, {"id": 39, "category": "공예·다꾸·만들기", "title": "종이를 겹쳐 인형 만들어 보기", "done": false}, {"id": 40, "category": "공예·다꾸·만들기", "title": "100일 동안 그림일기를 그려 책으로 만들어 보기", "done": false}, {"id": 41, "category": "자기 탐구·생활", "title": "내 에너지의 기준치 기록해 보기", "done": false}, {"id": 42, "category": "자기 탐구·생활", "title": "나의 취향 찾아보기", "done": false}, {"id": 43, "category": "자기 탐구·생활", "title": "자기애·자존감·자존심 중 우선순위 파악해 보기", "done": false}, {"id": 44, "category": "책 읽기", "title": "『달리기를 말할 때 내가 하고 싶은 이야기』 읽어보기", "done": false}, {"id": 45, "category": "책 읽기", "title": "『살육에 이르는 병』 읽어보기", "done": false}, {"id": 46, "category": "책 읽기", "title": "『식탐정 허균』 읽어보기", "done": false}, {"id": 47, "category": "책 읽기", "title": "『따님이 기가 세요』 읽어보기", "done": false}, {"id": 48, "category": "책 읽기", "title": "『채식주의자』 읽어보기", "done": false}, {"id": 49, "category": "책 읽기", "title": "『본즈 앤 올』 읽어보기", "done": false}, {"id": 50, "category": "책 읽기", "title": "『버진 수어사이드』 읽어보기", "done": false}, {"id": 51, "category": "책 읽기", "title": "『헌등사』 읽어보기", "done": false}, {"id": 52, "category": "책 읽기", "title": "『나의 작은 무법자』 읽어보기", "done": false}, {"id": 53, "category": "책 읽기", "title": "『별 수 없어서 그린 일기』 읽어보기", "done": false}, {"id": 54, "category": "책 읽기", "title": "『뻐꾸기 둥지 위로 날아간 새』 읽어보기", "done": false}, {"id": 55, "category": "영화·드라마 감상", "title": "『언내추럴』 영화 보기", "done": false}, {"id": 56, "category": "영화·드라마 감상", "title": "『에브리씽 에브리웨어 올 앳 원스』 보기", "done": false}, {"id": 57, "category": "영화·드라마 감상", "title": "『모나리자 스마일』 보기", "done": false}, {"id": 58, "category": "영화·드라마 감상", "title": "『해리가 샐리를 만났을 때』 보기", "done": false}, {"id": 59, "category": "영화·드라마 감상", "title": "『뜨거운 것이 좋아』 보기", "done": false}, {"id": 60, "category": "영화·드라마 감상", "title": "『그랜드 부다페스트 호텔』 보기", "done": false}, {"id": 61, "category": "영화·드라마 감상", "title": "『아마데우스』 보기", "done": false}, {"id": 62, "category": "영화·드라마 감상", "title": "『스파이의 아내』 보기", "done": false}, {"id": 63, "category": "영화·드라마 감상", "title": "『서브스턴스』 보기", "done": false}, {"id": 64, "category": "영화·드라마 감상", "title": "『바람이 분다』 보기", "done": false}, {"id": 65, "category": "영화·드라마 감상", "title": "『이미테이션』 보기", "done": false}, {"id": 66, "category": "영화·드라마 감상", "title": "『악마는 프라다를 입는다』 보기", "done": false}, {"id": 67, "category": "영화·드라마 감상", "title": "『플로우』 보기", "done": false}, {"id": 68, "category": "영화·드라마 감상", "title": "『34번가의 선물』 보기", "done": false}, {"id": 69, "category": "영화·드라마 감상", "title": "『이보다 더 좋을 수는 없다』 보기", "done": false}, {"id": 70, "category": "영화·드라마 감상", "title": "『레슨 인 케미스트리』 보기", "done": false}, {"id": 71, "category": "영화·드라마 감상", "title": "『거북이는 의외로 빨리 헤엄친다』 보기", "done": false}, {"id": 72, "category": "애니메이션 감상", "title": "『마법소녀 마도카☆마기카』 보기", "done": false}, {"id": 73, "category": "애니메이션 감상", "title": "『천막의 자두가르』 보기", "done": false}, {"id": 74, "category": "애니메이션 감상", "title": "『은하특급 밀키☆서브웨이』 보기", "done": false}, {"id": 75, "category": "애니메이션 감상", "title": "『이 별에 필요한』 보기", "done": false}, {"id": 76, "category": "애니메이션 감상", "title": "『그 비스크 돌은 사랑을 한다』 보기", "done": false}, {"id": 77, "category": "애니메이션·다큐 감상", "title": "『EBS 최후의 인류』 보기", "done": false}, {"id": 78, "category": "게임·인터랙티브", "title": "Enscroll 게임 해보기", "done": false}];
+const KEY = "myBucketList_v1";
+let items = INITIAL_ITEMS.map(x=>({...x}));
+let activeTab="all", query="", categoryFilter="", openCats=new Set(["여행·외출·경험"]);
+const $=id=>document.getElementById(id);
+function load(){try{const s=localStorage.getItem(KEY);if(s){const parsed=JSON.parse(s);if(Array.isArray(parsed)&&parsed.every(x=>x&&typeof x.title==="string"&&typeof x.category==="string"))items=parsed;}}catch(e){$("saveHint").textContent="자동 저장을 사용할 수 없어요. 백업 파일을 이용해 주세요.";}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items));$("saveHint").textContent="✓ 자동 저장됨";}catch(e){$("saveHint").textContent="저장 공간을 사용할 수 없어요. 백업 파일을 저장해 주세요.";}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function filteredItems(){return items.filter(x=>(activeTab==="all"||(activeTab==="done"&&x.done)||(activeTab==="todo"&&!x.done))&&(!categoryFilter||x.category===categoryFilter)&&x.title.toLocaleLowerCase().includes(query.toLocaleLowerCase()));}
+function render(){
+ const done=items.filter(x=>x.done).length, pct=items.length?Math.round(done/items.length*100):0;
+ $("progressText").textContent=`${done} / ${items.length}`;$("percentText").textContent=pct+"%";$("progressBar").style.width=pct+"%";
+ const cats=[...new Set(items.map(x=>x.category))], old=$("categoryFilter").value;
+ $("categoryFilter").innerHTML='<option value="">모든 카테고리</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+ $("categoryFilter").value=cats.includes(old)?old:categoryFilter;categoryFilter=$("categoryFilter").value;
+ $("categoryOptions").innerHTML=cats.map(c=>`<option value="${esc(c)}"></option>`).join('');
+ const filtered=filteredItems(), list=$("list");list.innerHTML="";
+ const visibleCats=cats.filter(c=>filtered.some(x=>x.category===c));
+ if(!filtered.length){list.innerHTML='<div class="panel empty">조건에 맞는 항목이 없어.</div>';return;}
+ visibleCats.forEach(cat=>{
+  const group=filtered.filter(x=>x.category===cat), allCat=items.filter(x=>x.category===cat), complete=allCat.filter(x=>x.done).length;
+  const section=document.createElement("section");section.className="category";
+  const isOpen=openCats.has(cat);
+  section.innerHTML=`<button class="cathead" aria-expanded="${isOpen}"><span class="arrow">${isOpen?"⌄":"›"}</span><span class="catname">${esc(cat)}</span><span class="count">${complete}/${allCat.length} 완료</span></button>${isOpen?'<div class="catitems"></div>':""}`;
+  section.querySelector(".cathead").addEventListener("click",()=>{isOpen?openCats.delete(cat):openCats.add(cat);render();});
+  if(isOpen){const body=section.querySelector(".catitems");group.forEach(item=>{
+   const row=document.createElement("div");row.className="item"+(item.done?" done":"");
+   const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!item.done;cb.setAttribute("aria-label",item.title+" 완료");cb.addEventListener("change",()=>{item.done=cb.checked;save();render();});
+   const title=document.createElement("div");title.className="item-title";title.textContent=item.title;
+   const del=document.createElement("button");del.className="delete";del.textContent="×";del.title="항목 삭제";del.setAttribute("aria-label",item.title+" 삭제");del.addEventListener("click",()=>{if(confirm(`‘${item.title}’ 항목을 삭제할까?`)){items=items.filter(x=>x.id!==item.id);save();render();}});
+   row.append(cb,title,del);body.append(row);
+  });}
+  list.append(section);
+ });
+}
+$("search").addEventListener("input",e=>{query=e.target.value;render();});
+$("categoryFilter").addEventListener("change",e=>{categoryFilter=e.target.value;render();});
+$("tabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(!b)return;activeTab=b.dataset.tab;document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active",x===b));render();});
+$("addToggle").addEventListener("click",()=>{$("addForm").classList.toggle("show");if($("addForm").classList.contains("show"))$("newTitle").focus();});
+$("addButton").addEventListener("click",()=>{const title=$("newTitle").value.trim(),category=$("newCategory").value.trim()||"기타";if(!title){$("newTitle").focus();return;}items.push({id:Date.now()+Math.random(),category,title,done:false});openCats.add(category);categoryFilter="";$("categoryFilter").value="";activeTab="all";document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active",x.dataset.tab==="all"));$("newTitle").value="";$("newCategory").value="";$("addForm").classList.remove("show");save();render();});
+$("newTitle").addEventListener("keydown",e=>{if(e.key==="Enter")$("addButton").click();});
+$("expandAll").addEventListener("click",()=>{items.forEach(x=>openCats.add(x.category));render();});
+$("collapseAll").addEventListener("click",()=>{openCats.clear();render();});
+$("exportBtn").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({version:1,items},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="나의_버킷리스트_백업.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$("importBtn").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text()),arr=Array.isArray(data)?data:data.items;if(!Array.isArray(arr)||!arr.every(x=>x&&typeof x.title==="string"&&typeof x.category==="string"))throw Error();if(confirm("현재 목록을 백업 파일의 목록으로 바꿀까?")){items=arr.map((x,i)=>({id:x.id??Date.now()+i,category:x.category,title:x.title,done:!!x.done}));save();render();}}catch(err){alert("이 백업 파일을 읽을 수 없어.");}e.target.value="";});
+load();render();
+</script></body></html>
