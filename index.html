@@ -65,7 +65,7 @@ function render(){
  const visibleCats=cats.filter(c=>filtered.some(x=>x.category===c));
  if(!filtered.length){list.innerHTML='<div class="panel empty">조건에 맞는 항목이 없어.</div>';return;}
  visibleCats.forEach(cat=>{
-  const group=filtered.filter(x=>x.category===cat), allCat=items.filter(x=>x.category===cat), complete=allCat.filter(x=>x.done).length;
+  const group=filtered.filter(x=>x.category===cat).sort((a,b)=>Number(!!a.done)-Number(!!b.done)), allCat=items.filter(x=>x.category===cat), complete=allCat.filter(x=>x.done).length;
   const section=document.createElement("section");section.className="category";
   const isOpen=openCats.has(cat);
   section.innerHTML=`<button class="cathead" aria-expanded="${isOpen}"><span class="arrow">${isOpen?"⌄":"›"}</span><span class="catname">${esc(cat)}</span><span class="count">${complete}/${allCat.length} 완료</span></button>${isOpen?'<div class="catitems"></div>':""}`;
